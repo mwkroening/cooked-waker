@@ -128,7 +128,7 @@ use alloc::rc;
 use alloc::sync as arc;
 use core::task::{RawWaker, RawWakerVTable, Waker};
 
-use stowaway::{self, Stowaway};
+use stowaway::{self, Stowable, Stowaway};
 
 /// Wakers that can wake by reference. This trait is used to enable a [`Wake`]
 /// implementation for types that don't own an underlying handle, like `Arc<T>`
@@ -181,7 +181,7 @@ pub trait Wake: WakeRef + Sized {
 /// [`RawWakerVTable`]: core::task::RawWakerVTable
 /// [`Waker`]: core::task::Waker
 /// [`stowaway`]: https://docs.rs/stowaway
-pub trait IntoWaker: Wake + Clone + Send + Sync + 'static {
+pub trait IntoWaker: Wake + Stowable + Clone + Send + Sync + 'static {
     /// The RawWakerVTable for this type. This should never be used directly;
     /// it is entirely handled by `into_waker`. It is present as an associated
     /// const because that's the only way for it to work in generic contexts.
@@ -193,7 +193,7 @@ pub trait IntoWaker: Wake + Clone + Send + Sync + 'static {
     fn into_waker(self) -> Waker;
 }
 
-impl<T: Wake + Clone + Send + Sync + 'static> IntoWaker for T {
+impl<T: Wake + Stowable + Clone + Send + Sync + 'static> IntoWaker for T {
     const VTABLE: &'static RawWakerVTable = &RawWakerVTable::new(
         // clone
         |raw| {
